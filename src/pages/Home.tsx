@@ -1,21 +1,35 @@
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 
 import { Header } from "../components/Header";
 import { Task, TasksList } from "../components/TasksList";
 import { TodoInput } from "../components/TodoInput";
 
+export type EdiTaskArgs = {
+  taskId: number;
+  taskNewTitle: string;
+};
+
 export function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   function handleAddTask(newTaskTitle: string) {
-    //TODO - add new task
     const data = {
       id: new Date().getTime(),
       title: newTaskTitle,
       done: false,
     };
-    setTasks((oldTasks) => [...oldTasks, data]);
+
+    const foundTitle = tasks.find((item) => item.title === newTaskTitle);
+
+    if (foundTitle) {
+      return Alert.alert(
+        "Tarefa já cadastrada",
+        "Você não pode cadastrar a mesma tarefa"
+      );
+    } else {
+      setTasks((oldTasks) => [...oldTasks, data]);
+    }
   }
 
   function handleToggleTaskDone(id: number) {
@@ -31,8 +45,33 @@ export function Home() {
   }
 
   function handleRemoveTask(id: number) {
-    //TODO - remove task from state
-    setTasks((oldTaks) => oldTaks.filter((task) => task.id !== id));
+    Alert.alert(
+      "Remover item",
+      "Tem certeza que você deseja remover esse item?",
+      [
+        {
+          style: "cancel",
+          text: "Não",
+        },
+        {
+          style: "destructive",
+          text: "Sim",
+          onPress: () =>
+            setTasks((oldTaks) => oldTaks.filter((task) => task.id !== id)),
+        },
+      ]
+    );
+  }
+
+  function handleEditTask({ taskId, taskNewTitle }: EdiTaskArgs) {
+    const editTask = tasks.map((task) => {
+      if (task.id === taskId) {
+        const newTask = { ...task, title: taskNewTitle };
+        return newTask;
+      }
+      return task;
+    });
+    setTasks(editTask);
   }
 
   return (
@@ -45,6 +84,7 @@ export function Home() {
         tasks={tasks}
         toggleTaskDone={handleToggleTaskDone}
         removeTask={handleRemoveTask}
+        editTask={handleEditTask}
       />
     </View>
   );
